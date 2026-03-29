@@ -30,4 +30,4 @@ data:
           hibernate.javax.cache.provider: "com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider"
           hibernate.javax.cache.uri: "caffeine-jcache.conf"
           hibernate.javax.cache.missing_cache_strategy: "fail"
-          jakarta.persistence.schema-generation.database.action: "drop-and-create"
+          jakarta.persistence.schema-generation.database.action: "none"

@@ -1,4 +1,6 @@
 package io.helidon.labs.dto;
 
-public record AddressDto(String address, String city, String country) {
-}
+import io.helidon.json.binding.Json;
+
+@Json.Entity
+public record AddressDto(String address, String city, String country) {}

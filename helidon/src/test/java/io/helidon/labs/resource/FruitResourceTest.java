@@ -12,12 +12,12 @@ import java.util.stream.Stream;
 
 import io.helidon.http.BadRequestException;
 import io.helidon.http.NotFoundException;
+import io.helidon.labs.dto.FruitCreateRequest;
+import io.helidon.labs.dto.FruitDto;
 import io.helidon.labs.model.Address;
 import io.helidon.labs.model.Fruit;
 import io.helidon.labs.model.Store;
 import io.helidon.labs.model.StoreFruitPrice;
-import io.helidon.labs.dto.FruitCreateRequest;
-import io.helidon.labs.dto.FruitDto;
 import io.helidon.labs.repository.FruitRepository;
 import org.junit.jupiter.api.Test;
 

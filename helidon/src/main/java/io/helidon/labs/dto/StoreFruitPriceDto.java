@@ -1,6 +1,7 @@
 package io.helidon.labs.dto;
 
+import io.helidon.json.binding.Json;
 import java.math.BigDecimal;
 
-public record StoreFruitPriceDto(StoreDto store, BigDecimal price) {
-}
+@Json.Entity
+public record StoreFruitPriceDto(StoreDto store, BigDecimal price) {}

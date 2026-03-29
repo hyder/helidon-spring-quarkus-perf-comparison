@@ -1,17 +1,16 @@
 package io.helidon.labs.mapping;
 
 import java.util.Comparator;
-import java.util.List;
 
-import io.helidon.labs.model.Address;
-import io.helidon.labs.model.Fruit;
-import io.helidon.labs.model.Store;
-import io.helidon.labs.model.StoreFruitPrice;
 import io.helidon.labs.dto.AddressDto;
 import io.helidon.labs.dto.FruitCreateRequest;
 import io.helidon.labs.dto.FruitDto;
 import io.helidon.labs.dto.StoreDto;
 import io.helidon.labs.dto.StoreFruitPriceDto;
+import io.helidon.labs.model.Address;
+import io.helidon.labs.model.Fruit;
+import io.helidon.labs.model.Store;
+import io.helidon.labs.model.StoreFruitPrice;
 
 public final class FruitMapper {
 
