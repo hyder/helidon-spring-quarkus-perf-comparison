@@ -1,0 +1,37 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: labs
+  labels:
+    app: labs
+spec:
+  type: ClusterIP
+  selector:
+    app: labs
+  ports:
+    - name: tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: labs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: labs
+  template:
+    metadata:
+      labels:
+        app: labs
+        version: v1
+    spec:
+      containers:
+      - name: labs
+        image: labs
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080

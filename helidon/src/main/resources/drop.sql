@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS store_fruit_prices;
+DROP TABLE IF EXISTS stores;
+DROP TABLE IF EXISTS fruits;

@@ -21,12 +21,13 @@ states:
   config.jvm.graalvm.version: 25.0.2-graalce
 
   config.quarkus.version: #3.28.3
+  config.helidon.version: #4.4.0
   config.springboot3.version: #3.5.6
   config.springboot4.version: #4.0.0
 
   config.jvm.memory: #-Xmx128m
   config.jvm.args: #-XX:+UseNUMA
-  config.quarkus.build_config_args: 
+  config.quarkus.build_config_args:
 
   config.quarkus.native_build_options: #-Dquarkus.native.native-image-xmx=<maximum_memory>
   config.springboot3.native_build_options:
@@ -56,8 +57,29 @@ states:
   PAUSE_TIME: 5
   PROFILER_JVM_ARGS:
   BASE_JAVA_CMD: ${{APP_CMD_PREFIX}} java ${{config.jvm.memory}} ${{config.jvm.args}} ${{PROFILER_JVM_ARGS}}
-  TESTS : [test-build, measure-build-times, measure-time-to-first-request, measure-rss, run-load-test]
-  RUNTIMES: [quarkus3-jvm, quarkus3-virtual, quarkus3-native, spring3-jvm, spring3-virtual, spring3-jvm-aot, spring3-native, spring4-jvm, spring4-virtual, spring4-jvm-aot, spring4-native]
+  TESTS:
+    [
+      test-build,
+      measure-build-times,
+      measure-time-to-first-request,
+      measure-rss,
+      run-load-test,
+    ]
+  RUNTIMES:
+    [
+      quarkus3-jvm,
+      quarkus3-virtual,
+      quarkus3-native,
+      spring3-jvm,
+      spring3-virtual,
+      spring3-jvm-aot,
+      spring3-native,
+      spring4-jvm,
+      spring4-virtual,
+      spring4-jvm-aot,
+      spring4-native,
+      helidon-jvm,
+    ]
   TARGET_URL: http://localhost:8080/fruits
   QUARKUS-PLATFORM-ARTIFACT-ID: quarkus-bom
   PROJ_REPO_NAME: spring-quarkus-perf-comparison
@@ -200,6 +222,14 @@ states:
       buildCmd: "${{APP_CMD_PREFIX}} ./mvnw clean -Pnative -DskipTests native:compile package ${{config.springboot4.native_build_options}}"
       runCmd: "${{APP_CMD_PREFIX}} ${{SPRING4_BOOT_DIR}}/target/springboot4 ${{config.jvm.memory}}"
       logFileStartedRegex: ".*Started SpringBoot4Application in.+seconds.*"
+    - name: helidon-jvm
+      type: jvm
+      dir: ${{HELIDON_DIR}}
+      updateScript: update-helidon-version
+      updateVersion: ${{config.helidon.version}}
+      buildCmd: "${{APP_CMD_PREFIX}} ${{PROJ_REPO_DIR}}/mvnw -f ${{HELIDON_DIR}}/pom.xml clean package -DskipTests"
+      runCmd: "${{BASE_JAVA_CMD}} -jar ${{HELIDON_DIR}}/target/labs.jar"
+      logFileStartedRegex: ".*Server started on: http://localhost:8080.*"
 
 scripts:
   update-state:
@@ -213,6 +243,7 @@ scripts:
     - set-state: RUN.SPRING4_BOOT_DIR ${{REPO_DIR}}/${{PROJ_REPO_NAME}}/springboot4
     - set-state: RUN.QUARKUS3_DIR ${{REPO_DIR}}/${{PROJ_REPO_NAME}}/quarkus3
     - set-state: RUN.QUARKUS3_VIRTUAL_DIR ${{REPO_DIR}}/${{PROJ_REPO_NAME}}/quarkus3-virtual
+    - set-state: RUN.HELIDON_DIR ${{REPO_DIR}}/${{PROJ_REPO_NAME}}/helidon
     - set-state: RUN.ASYNC_PROFILER_DIR ${{BASE_DIR}}/${{ASYNC_PROFILER}}
 
   output-vars:
@@ -226,6 +257,7 @@ scripts:
         "SPRING4_BOOT_DIR: ${{SPRING4_BOOT_DIR}}"
         "QUARKUS3_DIR : ${{QUARKUS3_DIR}}"
         "QUARKUS3_VIRTUAL_DIR : ${{QUARKUS3_VIRTUAL_DIR}}"
+        "HELIDON_DIR : ${{HELIDON_DIR}}"
         "RUNTIMECMDS: ${{RUNTIMECMDS}}"
 
   capture-repo-info:
@@ -297,6 +329,17 @@ scripts:
         version: ${{VERSION}}
     - sh: ./mvnw versions:set-property -Dproperty=quarkus.platform.version -DnewVersion=${{VERSION}}
 
+  update-helidon-version:
+    - sh: cd ${{DIR}}
+    - sh: ${{PROJ_REPO_DIR}}/mvnw -f ${{DIR}}/pom.xml dependency:get -Dartifact=io.helidon.applications:helidon-se:${{VERSION}} -Dpackaging=pom
+      then:
+        - regex: BUILD FAILURE
+          then:
+            - abort: Unable to find io.helidon.applications:helidon-se:${{VERSION}} in maven central
+          else:
+            - log: Artifact io.helidon.applications:helidon-se:${{VERSION}} is available in maven central
+    - sh: ${{PROJ_REPO_DIR}}/mvnw -f ${{DIR}}/pom.xml versions:update-parent "-DparentVersion=[${{VERSION}}]" -DskipResolution=true
+
   start-test-services:
     - sh: ${{PROJ_REPO_DIR}}/scripts/infra.sh -c 3 -l 3 -p '${{config.resources.cpu.db}}' -g '${{config.resources.cpu.otel}}' -s
       watch:
@@ -325,9 +368,9 @@ scripts:
         - log: "Testing: ${{RUNTIME}}"
         - for-each: TEST ${{TESTS}}
           then:
-          - script: ${{TEST}}
-            with:
-              RUNTIME: ${{RUNTIMECMD}}
+            - script: ${{TEST}}
+              with:
+                RUNTIME: ${{RUNTIMECMD}}
 
   abort-script-not-found:
     - abort: script not found
@@ -340,9 +383,9 @@ scripts:
       with:
         BUILD_CMD: ${{RUNTIME.buildCmd}}
       watch:
-      - regex: BUILD FAILURE
-        then:
-          - abort: failed to build ${{RUNTIME.name}}
+        - regex: BUILD FAILURE
+          then:
+            - abort: failed to build ${{RUNTIME.name}}
 
   measure-build-times:
     - log: Build times
@@ -397,27 +440,27 @@ scripts:
             - set-state: RUN.output.results.${{RUNTIME.name}}.build.native.binarySize
 
             # Capture the number of classes
-            - sh: "cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep \"types.*fields.*methods found reachable\" | awk '{print $1}'"
+            - sh: 'cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep "types.*fields.*methods found reachable" | awk ''{print $1}'''
             - set-state: RUN.output.results.${{RUNTIME.name}}.build.classCount
 
             # Capture the number of fields
-            - sh: "cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep \"types.*fields.*methods found reachable\" | awk '{print $3}'"
+            - sh: 'cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep "types.*fields.*methods found reachable" | awk ''{print $3}'''
             - set-state: RUN.output.results.${{RUNTIME.name}}.build.fieldCount
 
             # Capture the number of methods
-            - sh: "cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep \"types.*fields.*methods found reachable\" | awk '{print $6}'"
+            - sh: 'cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep "types.*fields.*methods found reachable" | awk ''{print $6}'''
             - set-state: RUN.output.results.${{RUNTIME.name}}.build.methodCount
 
             # Capture the number of classes registered for reflection
-            - sh: "cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep \"types.*fields.*methods registered for reflection\" | awk '{print $1}'"
+            - sh: 'cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep "types.*fields.*methods registered for reflection" | awk ''{print $1}'''
             - set-state: RUN.output.results.${{RUNTIME.name}}.build.reflectionClassCount
 
             # Capture the number of fields registered for reflection
-            - sh: "cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep \"types.*fields.*methods registered for reflection\" | awk '{print $3}'"
+            - sh: 'cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep "types.*fields.*methods registered for reflection" | awk ''{print $3}'''
             - set-state: RUN.output.results.${{RUNTIME.name}}.build.reflectionFieldCount
 
             # Capture the number of methods registered for reflection
-            - sh: "cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep \"types.*fields.*methods registered for reflection\" | awk '{print $6}'"
+            - sh: 'cat ${{REPO_DIR}}/logs/build-times-${{RUNTIME.name}}-0.log | grep "types.*fields.*methods registered for reflection" | awk ''{print $6}'''
             - set-state: RUN.output.results.${{RUNTIME.name}}.build.reflectionMethodCount
 
   measure-time-to-first-request:
@@ -705,9 +748,9 @@ scripts:
     - set-state: RUN.output.env ${{RUN.env}}
     - sh: echo '${{RUN.output}}' > ${{METRICS_DIR}}/metrics.json
       then:
-      - regex: .*Permission denied
-        then:
-        - abort: Could not output metrics. Permission denied!
+        - regex: .*Permission denied
+          then:
+            - abort: Could not output metrics. Permission denied!
     - queue-download: ${{METRICS_DIR}}/metrics.json
 #    - queue-download: ${{REPO_DIR}}/logs/*
 
@@ -720,7 +763,7 @@ roles:
       - target-host
     setup-scripts:
       - update-state
-#      - output-vars
+      #      - output-vars
       - detect-os
       - capture-system-info
       - cleanup-env

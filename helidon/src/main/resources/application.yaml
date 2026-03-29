@@ -1,0 +1,33 @@
+server:
+  port: 8080
+  host: 0.0.0.0
+
+declarative:
+  ignore-incubating: true
+
+data:
+  sources:
+    sql:
+      - name: "fruitstore"
+        provider.jdbc:
+          username: "fruits"
+          url: "jdbc:postgresql://localhost:5432/fruits"
+          jdbc-driver-class-name: "org.postgresql.Driver"
+          properties:
+            password: "fruits"
+  persistence-units:
+    jakarta:
+      - data-source: "fruitstore"
+        init-script: "init.sql"
+        drop-script: "drop.sql"
+        properties:
+          hibernate.dialect: "org.hibernate.dialect.PostgreSQLDialect"
+          hibernate.show_sql: false
+          hibernate.format_sql: true
+          jakarta.persistence.sharedCache.mode: "ENABLE_SELECTIVE"
+          hibernate.cache.use_second_level_cache: true
+          hibernate.cache.region.factory_class: "jcache"
+          hibernate.javax.cache.provider: "com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider"
+          hibernate.javax.cache.uri: "caffeine-jcache.conf"
+          hibernate.javax.cache.missing_cache_strategy: "fail"
+          jakarta.persistence.schema-generation.database.action: "drop-and-create"
