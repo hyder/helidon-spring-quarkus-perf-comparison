@@ -36,6 +36,10 @@ get_otel_host_pid() {
   echo $(${engine} inspect -f '{{.State.Pid}}' ${OTEL_CONTAINER_NAME})
 }
 
+container_exists() {
+  ${engine} inspect "$1" >/dev/null 2>&1
+}
+
 # Wrapper to handle rootless podman cgroup issues on Linux
 run_with_cgroup_support() {
   # Check if we're on Linux with rootless podman
@@ -51,6 +55,36 @@ run_with_cgroup_support() {
     # macOS, Docker, or rootful podman - run directly
     "$@"
   fi
+}
+
+run_with_timeout() {
+  local seconds="$1"
+  shift
+
+  if command -v timeout >/dev/null 2>&1; then
+    timeout "${seconds}" "$@"
+    return $?
+  fi
+
+  if command -v gtimeout >/dev/null 2>&1; then
+    gtimeout "${seconds}" "$@"
+    return $?
+  fi
+
+  "$@" &
+  local cmd_pid=$!
+
+  (
+    sleep "${seconds}"
+    kill -TERM "${cmd_pid}" 2>/dev/null
+  ) &
+  local timer_pid=$!
+
+  local status=0
+  wait "${cmd_pid}" || status=$?
+  kill -TERM "${timer_pid}" 2>/dev/null || true
+  wait "${timer_pid}" 2>/dev/null || true
+  return "${status}"
 }
 
 start_otel() {
@@ -84,7 +118,7 @@ start_otel() {
   echo "Grafana Otel LGTM process: $pid"
 
   echo "Waiting for Grafana Otel LGTM to be ready..."
-  timeout 90s bash -c "until curl -sf http://localhost:3000/api/health > /dev/null; do sleep 5; done" || {
+  run_with_timeout 90 bash -c "until curl -sf http://localhost:3000/api/health > /dev/null; do sleep 5; done" || {
     echo "Error: Otel LGTM failed to become ready"
     exit 1
   }
@@ -129,7 +163,7 @@ start_postgres() {
   echo "PostgreSQL DB process: $pid"
 
   echo "Waiting for PostgreSQL to be ready..."
-  timeout 90s bash -c "until ${engine} exec $DB_CONTAINER_NAME pg_isready -h localhost -U fruits; do sleep 5 ; done" || {
+  run_with_timeout 90 bash -c "until ${engine} exec $DB_CONTAINER_NAME pg_isready -h localhost -U fruits; do sleep 5 ; done" || {
     echo "Error: PostgreSQL failed to become ready"
     exit 1
   }
@@ -137,12 +171,20 @@ start_postgres() {
 
 stop_otel() {
   echo "Stopping Otel stack"
-  ${engine} stop ${OTEL_CONTAINER_NAME}
+  if container_exists "${OTEL_CONTAINER_NAME}"; then
+    ${engine} stop ${OTEL_CONTAINER_NAME}
+  else
+    echo "Otel container '${OTEL_CONTAINER_NAME}' is not running"
+  fi
 }
 
 stop_postgres() {
   echo "Stopping PostgreSQL database '${DB_CONTAINER_NAME}'"
-  ${engine} stop ${DB_CONTAINER_NAME}
+  if container_exists "${DB_CONTAINER_NAME}"; then
+    ${engine} stop ${DB_CONTAINER_NAME}
+  else
+    echo "PostgreSQL container '${DB_CONTAINER_NAME}' is not running"
+  fi
 }
 
 start_services() {
