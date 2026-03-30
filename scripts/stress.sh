@@ -26,6 +26,8 @@ ${thisdir}/infra.sh -d
 
 set -euo pipefail
 
+WRK_TIMEOUT="${WRK_TIMEOUT:-5s}"
+
 ${thisdir}/infra.sh -s
 
 ts=$(_date)
@@ -62,7 +64,7 @@ printf "Time to first request: %.3f sec\n" $(echo "$TTFR / 1000" | bc -l)
 printf "RSS (after 1st request): %.1f MB\n" $(echo "$RSS / 1024" | bc -l)
 echo "-------------------------------------------------"
 
-jbang wrk@hyperfoil -t2 -c100 -d20s --timeout 1s --latency http://localhost:8080/fruits
+jbang wrk@hyperfoil -t2 -c100 -d20s --timeout "${WRK_TIMEOUT}" --latency http://localhost:8080/fruits
 
 ${thisdir}/infra.sh -d
 kill $(lsof -t -i:8080) &>/dev/null
