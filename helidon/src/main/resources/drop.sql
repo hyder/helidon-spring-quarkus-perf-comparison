@@ -1,3 +1,5 @@
 DROP TABLE IF EXISTS store_fruit_prices;
 DROP TABLE IF EXISTS stores;
 DROP TABLE IF EXISTS fruits;
+DROP SEQUENCE IF EXISTS stores_seq;
+DROP SEQUENCE IF EXISTS fruits_seq;

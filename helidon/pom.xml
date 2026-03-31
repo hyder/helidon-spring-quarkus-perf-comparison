@@ -67,7 +67,7 @@
         </dependency>
         <dependency>
             <groupId>io.helidon.data.sql.datasource</groupId>
-            <artifactId>helidon-data-sql-datasource-jdbc</artifactId>
+            <artifactId>helidon-data-sql-datasource-hikari</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

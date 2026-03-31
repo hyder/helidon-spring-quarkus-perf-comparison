@@ -20,6 +20,8 @@ help() {
   echo " -s                    Start the services"
   echo " -t <OTEL_MEMORY>      Memory to allocate to the Otel container"
   echo "                         Default: ${OTEL_MEMORY}"
+  echo " -x <DB_MAX_CONNECTIONS> PostgreSQL max_connections setting"
+  echo "                         Default: ${DB_MAX_CONNECTIONS}"
 }
 
 exit_abnormal() {
@@ -159,7 +161,8 @@ start_postgres() {
     -c track_counts=off \
     -c checkpoint_timeout=1h \
     -c work_mem=32MB \
-    -c maintenance_work_mem=256MB)
+    -c maintenance_work_mem=256MB \
+    -c max_connections=${DB_MAX_CONNECTIONS})
   echo "PostgreSQL DB process: $pid"
 
   echo "Waiting for PostgreSQL to be ready..."
@@ -213,6 +216,7 @@ OTEL_MEMORY="2g"
 DB_CPUS=""
 DB_CPUSET_CPUS=""
 DB_MEMORY="2g"
+DB_MAX_CONNECTIONS="${DB_MAX_CONNECTIONS:-200}"
 engine=""
 IS_STARTING=true
 
@@ -226,7 +230,7 @@ else
 fi
 
 # Process the input options
-while getopts "c:dg:hl:m:op:rst:" option; do
+while getopts "c:dg:hl:m:op:rst:x:" option; do
   case $option in
     c) DB_CPUS=$OPTARG
        ;;
@@ -262,6 +266,9 @@ while getopts "c:dg:hl:m:op:rst:" option; do
        ;;
 
     t) OTEL_MEMORY=$OPTARG
+       ;;
+
+    x) DB_MAX_CONNECTIONS=$OPTARG
        ;;
 
     *) exit_abnormal

@@ -7,12 +7,16 @@ declarative:
 
 data:
   sources:
+    # investigate Helidon Data configuration, in particular line 16
+    # data source is missing
     sql:
       - name: "fruitstore"
-        provider.jdbc:
+        provider.hikari:
           username: "fruits"
+          password: "fruits"
           url: "jdbc:postgresql://localhost:5432/fruits"
-          jdbc-driver-class-name: "org.postgresql.Driver"
+          # jdbc-driver-class-name: "org.postgresql.Driver"
+          maximum-pool-size: 50
           properties:
             password: "fruits"
   persistence-units:
@@ -21,7 +25,7 @@ data:
         init-script: "init.sql"
         drop-script: "drop.sql"
         properties:
-          hibernate.dialect: "org.hibernate.dialect.PostgreSQLDialect"
+          # hibernate.dialect: "org.hibernate.dialect.PostgreSQLDialect"
           hibernate.show_sql: false
           hibernate.format_sql: true
           jakarta.persistence.sharedCache.mode: "ENABLE_SELECTIVE"
