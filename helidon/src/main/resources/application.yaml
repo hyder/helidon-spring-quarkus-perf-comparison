@@ -7,8 +7,6 @@ declarative:
 
 data:
   sources:
-    # investigate Helidon Data configuration, in particular line 16
-    # data source is missing
     sql:
       - name: "fruitstore"
         provider.hikari:
@@ -16,9 +14,11 @@ data:
           password: "fruits"
           url: "jdbc:postgresql://localhost:5432/fruits"
           # jdbc-driver-class-name: "org.postgresql.Driver"
+          auto-commit: false
+          transaction-isolation: "TRANSACTION_READ_COMMITTED"
+          minimum-idle: 10
           maximum-pool-size: 50
-          properties:
-            password: "fruits"
+          pool-name: "fruitstore"
   persistence-units:
     jakarta:
       - data-source: "fruitstore"

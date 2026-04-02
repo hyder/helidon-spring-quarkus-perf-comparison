@@ -1,4 +1,11 @@
-db:
-  connection:
-    url: jdbc:h2:mem:test
-
+data:
+  sources:
+    sql:
+      - name: "fruitstore"
+        provider.hikari:
+          url: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
+          username: "sa"
+          password: ""
+  persistence-units:
+    jakarta:
+      - data-source: "fruitstore"
