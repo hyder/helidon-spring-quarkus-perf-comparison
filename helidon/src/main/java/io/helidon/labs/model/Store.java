@@ -1,39 +1,13 @@
 package io.helidon.labs.model;
 
-import jakarta.persistence.Cacheable;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.SequenceGenerator;
-import jakarta.persistence.Table;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
-@Entity
-@Table(name = "stores")
-@Cacheable
-@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "store")
 public class Store {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "stores_seq")
-  @SequenceGenerator(
-    name = "stores_seq",
-    sequenceName = "stores_seq",
-    allocationSize = 1
-  )
   private Long id;
 
-  @Column(nullable = false, unique = true)
   private String name;
 
-  @Column(nullable = false)
   private String currency;
 
-  @Embedded
   private Address address;
 
   public Store() {}

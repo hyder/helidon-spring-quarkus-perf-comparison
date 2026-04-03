@@ -2,17 +2,10 @@ package io.helidon.labs.model;
 
 import java.io.Serializable;
 import java.util.Objects;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-
-@Embeddable
 public class StoreFruitPriceId implements Serializable {
 
-    @Column(name = "store_id", nullable = false)
     private Long storeId;
 
-    @Column(name = "fruit_id", nullable = false)
     private Long fruitId;
 
     public StoreFruitPriceId() {

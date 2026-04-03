@@ -1,11 +1,11 @@
 package io.helidon.labs;
 
+import io.helidon.labs.db.DatabaseInitializer;
 import io.helidon.logging.common.LogConfig;
 import io.helidon.service.registry.Service;
 import io.helidon.service.registry.ServiceRegistryManager;
 import io.helidon.service.registry.Services;
 import io.helidon.webserver.WebServer;
-import io.helidon.labs.model.Fruit;
 
 /**
  * The application main class.
@@ -27,6 +27,7 @@ public class Main {
     LogConfig.configureRuntime();
 
     ServiceRegistryManager.start(ApplicationBinding.create());
+    Services.get(DatabaseInitializer.class);
 
     WebServer webServer = Services.get(WebServer.class);
     System.out.println(

@@ -11,6 +11,7 @@ import io.helidon.labs.model.Fruit;
 import io.helidon.labs.model.Store;
 import io.helidon.labs.model.StoreFruitPrice;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,16 @@ public final class FruitMapper {
       .values()
       .stream()
       .map(it ->
-        new FruitDto(it.id(), it.name(), it.description(), it.storePrices())
+        new FruitDto(
+          it.id(),
+          it.name(),
+          it.description(),
+          it
+            .storePrices()
+            .stream()
+            .sorted(Comparator.comparing(price -> price.store().name()))
+            .toList()
+        )
       )
       .toList();
   }

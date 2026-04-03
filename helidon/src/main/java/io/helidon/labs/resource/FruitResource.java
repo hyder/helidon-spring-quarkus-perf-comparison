@@ -10,7 +10,6 @@ import io.helidon.labs.mapping.FruitMapper;
 import io.helidon.labs.model.Fruit;
 import io.helidon.labs.repository.FruitRepository;
 import io.helidon.service.registry.Service;
-import io.helidon.transaction.Tx;
 import io.helidon.webserver.http.RestServer;
 import java.util.List;
 
@@ -46,7 +45,6 @@ public class FruitResource {
   @Http.POST
   @Http.Consumes(MediaTypes.APPLICATION_JSON_VALUE)
   @Http.Produces(MediaTypes.APPLICATION_JSON_VALUE)
-  @Tx.Required
   FruitDto insert(@Http.Entity FruitCreateRequest request) {
     FruitCreateRequest normalizedRequest = normalize(request);
     fruitRepository
