@@ -1,3 +1,8 @@
+app:
+  fruit:
+    repository:
+      delegate: "jpa"
+
 data:
   sources:
     sql:

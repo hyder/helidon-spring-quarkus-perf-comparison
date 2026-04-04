@@ -5,6 +5,13 @@ server:
 declarative:
   ignore-incubating: true
 
+app:
+  fruit:
+    repository:
+      delegate: "jpa"
+      cache:
+        maximum-size: 1024
+
 data:
   sources:
     sql:
@@ -28,10 +35,4 @@ data:
           # hibernate.dialect: "org.hibernate.dialect.PostgreSQLDialect"
           hibernate.show_sql: false
           hibernate.format_sql: true
-          jakarta.persistence.sharedCache.mode: "ENABLE_SELECTIVE"
-          hibernate.cache.use_second_level_cache: true
-          hibernate.cache.region.factory_class: "jcache"
-          hibernate.javax.cache.provider: "com.github.benmanes.caffeine.jcache.spi.CaffeineCachingProvider"
-          hibernate.javax.cache.uri: "caffeine-jcache.conf"
-          hibernate.javax.cache.missing_cache_strategy: "fail"
           jakarta.persistence.schema-generation.database.action: "none"
