@@ -1,8 +1,5 @@
 package io.helidon.labs.repository;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import io.helidon.common.Weight;
 import io.helidon.dbclient.DbClient;
 import io.helidon.dbclient.DbResultDml;
 import io.helidon.dbclient.DbRow;
@@ -15,17 +12,13 @@ import io.helidon.labs.model.Store;
 import io.helidon.labs.model.StoreFruitPrice;
 import io.helidon.service.registry.Service;
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 @Service.Singleton
-@Weight(200)
-class OptimizedFruitRepository implements FruitRepository {
-
-  private static final String SUMMARY_CACHE_KEY = "all";
+class DbClientFruitRepository {
 
   private static final String SUMMARY_SQL = """
     SELECT f.id AS fruit_id,
@@ -41,7 +34,7 @@ class OptimizedFruitRepository implements FruitRepository {
       FROM fruits f
       LEFT JOIN store_fruit_prices sp ON sp.fruit_id = f.id
       LEFT JOIN stores s ON s.id = sp.store_id
-     ORDER BY f.name, f.id
+     ORDER BY f.name
     """;
 
   private static final String DETAIL_BY_NAME_SQL = """
@@ -73,50 +66,24 @@ class OptimizedFruitRepository implements FruitRepository {
   """;
 
   private final DbClient dbClient;
-  private final Cache<String, List<FruitListRow>> summaryCache;
-  private final Cache<String, Optional<Fruit>> fruitByNameCache;
-  private final Cache<String, Optional<Fruit>> fruitDetailCache;
 
   @Service.Inject
-  OptimizedFruitRepository(DbClientService dbClientService) {
+  DbClientFruitRepository(DbClientService dbClientService) {
     this.dbClient = dbClientService.dbClient();
-    this.summaryCache = Caffeine
-      .newBuilder()
-      .maximumSize(1)
-      .expireAfterWrite(Duration.ofSeconds(30))
-      .build();
-    this.fruitByNameCache = Caffeine
-      .newBuilder()
-      .maximumSize(1_024)
-      .expireAfterWrite(Duration.ofSeconds(30))
-      .build();
-    this.fruitDetailCache = Caffeine
-      .newBuilder()
-      .maximumSize(1_024)
-      .expireAfterWrite(Duration.ofSeconds(30))
-      .build();
   }
 
-  @Override
   public List<FruitListRow> listSummaryOrderByName() {
-    return summaryCache.get(SUMMARY_CACHE_KEY, ignored -> querySummaryRows());
+    return querySummaryRows();
   }
 
-  @Override
   public Optional<Fruit> findDetailedByName(String name) {
-    return fruitDetailCache
-      .get(name, this::queryFruitDetailByName)
-      .map(OptimizedFruitRepository::copyFruit);
+    return queryFruitDetailByName(name);
   }
 
-  @Override
   public Optional<Fruit> findByName(String name) {
-    return fruitByNameCache
-      .get(name, this::queryFruitByName)
-      .map(OptimizedFruitRepository::copyFruit);
+    return queryFruitByName(name);
   }
 
-  @Override
   public <T extends Fruit> T insert(T entity) {
     DbTransaction transaction = dbClient.transaction();
     DbResultDml result = transaction
@@ -138,7 +105,6 @@ class OptimizedFruitRepository implements FruitRepository {
         entity.setStorePrices(new ArrayList<>());
       }
       transaction.commit();
-      invalidateFruitCaches(entity.getName());
       return entity;
     } catch (RuntimeException e) {
       transaction.rollback();
@@ -147,6 +113,7 @@ class OptimizedFruitRepository implements FruitRepository {
       closeResult(result);
     }
   }
+
   private static FruitListRow toFruitListRow(DbRow row) {
     return new FruitListRow(
       row.column("fruit_id").get(Long.class),
@@ -164,7 +131,7 @@ class OptimizedFruitRepository implements FruitRepository {
 
   private List<FruitListRow> querySummaryRows() {
     try (Stream<DbRow> rows = dbClient.execute().createQuery(SUMMARY_SQL).execute()) {
-      return rows.map(OptimizedFruitRepository::toFruitListRow).toList();
+      return rows.map(DbClientFruitRepository::toFruitListRow).toList();
     }
   }
 
@@ -190,7 +157,7 @@ class OptimizedFruitRepository implements FruitRepository {
       .createGet(FIND_BY_NAME_SQL)
       .addParam("name", name)
       .execute()
-      .map(OptimizedFruitRepository::toFruit);
+      .map(DbClientFruitRepository::toFruit);
   }
 
   private static Fruit toFruit(DbRow row) {
@@ -242,44 +209,6 @@ class OptimizedFruitRepository implements FruitRepository {
   private static <T> T nullable(DbRow row, String columnName, Class<T> type) {
     Object value = row.column(columnName).get();
     return value == null ? null : type.cast(value);
-  }
-
-  private void invalidateFruitCaches(String fruitName) {
-    summaryCache.invalidate(SUMMARY_CACHE_KEY);
-    fruitByNameCache.invalidate(fruitName);
-    fruitDetailCache.invalidate(fruitName);
-  }
-
-  private static Fruit copyFruit(Fruit source) {
-    Fruit copy = new Fruit(source.getId(), source.getName(), source.getDescription());
-    List<StoreFruitPrice> copiedPrices = source
-      .getStorePrices()
-      .stream()
-      .map(price -> copyStoreFruitPrice(price, copy))
-      .toList();
-    copy.setStorePrices(copiedPrices);
-    return copy;
-  }
-
-  private static StoreFruitPrice copyStoreFruitPrice(StoreFruitPrice source, Fruit fruit) {
-    return new StoreFruitPrice(copyStore(source.getStore()), fruit, source.getPrice());
-  }
-
-  private static Store copyStore(Store source) {
-    return new Store(
-      source.getId(),
-      source.getName(),
-      copyAddress(source.getAddress()),
-      source.getCurrency()
-    );
-  }
-
-  private static Address copyAddress(Address source) {
-    return new Address(
-      source.getAddress(),
-      source.getCity(),
-      source.getCountry()
-    );
   }
 
   private static void closeResult(DbResultDml result) {

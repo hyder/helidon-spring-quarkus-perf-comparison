@@ -2,6 +2,9 @@ server:
   port: 8080
   host: 0.0.0.0
 
+fruit-repository:
+  type: "caffeine"
+
 db:
   source: jdbc
   connection:
@@ -13,3 +16,9 @@ db:
     minimumIdle: 10
     maximumPoolSize: 50
     poolName: "fruitstore"
+
+cache:
+  fruit-repository:
+    ttl: "PT30S"
+    summary-maximum-size: 1
+    entity-maximum-size: 1024

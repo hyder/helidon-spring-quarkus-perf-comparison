@@ -1,6 +1,15 @@
+fruit-repository:
+  type: "caffeine"
+
 db:
   source: jdbc
   connection:
     url: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
     username: "sa"
     password: ""
+
+cache:
+  fruit-repository:
+    ttl: "PT30S"
+    summary-maximum-size: 1
+    entity-maximum-size: 1024
