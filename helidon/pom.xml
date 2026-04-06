@@ -5,67 +5,86 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>io.helidon.applications</groupId>
         <artifactId>helidon-se</artifactId>
         <version>4.4.0</version>
         <relativePath />
     </parent>
+
     <groupId>io.helidon</groupId>
     <artifactId>helidon</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
         <mainClass>io.helidon.labs.Main</mainClass>
+        <helidon.version>4.4.1-SNAPSHOT</helidon.version>
+        <helidon.data.jpa.local.version>4.4.1-thor-jpa-local-20260406</helidon.data.jpa.local.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>sonatype-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <dependencies>
         <dependency>
             <groupId>io.helidon.config</groupId>
             <artifactId>helidon-config-yaml</artifactId>
+            <version>${helidon.version}</version>
         </dependency>
         <dependency>
             <groupId>io.helidon.data</groupId>
             <artifactId>helidon-data</artifactId>
+            <version>${helidon.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.helidon.private.thor</groupId>
-            <artifactId>helidon-data-jakarta-persistence</artifactId>
-            <version>4.4.1-thor-jpa-perf-20260405</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.helidon.private.thor</groupId>
-            <artifactId>helidon-data-codegen</artifactId>
-            <version>4.4.1-thor-jpa-perf-20260405</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.helidon.private.thor</groupId>
-            <artifactId>helidon-data-jakarta-persistence-codegen</artifactId>
-            <version>4.4.1-thor-jpa-perf-20260405</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- <dependency>
             <groupId>io.helidon.data.jakarta.persistence</groupId>
             <artifactId>helidon-data-jakarta-persistence</artifactId>
-        </dependency> -->
+            <version>${helidon.data.jpa.local.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.helidon.webserver</groupId>
             <artifactId>helidon-webserver</artifactId>
+            <version>${helidon.version}</version>
         </dependency>
         <dependency>
             <groupId>io.helidon.json</groupId>
             <artifactId>helidon-json-binding</artifactId>
+            <version>${helidon.version}</version>
         </dependency>
         <dependency>
             <groupId>io.helidon.http.media</groupId>
             <artifactId>helidon-http-media-json-binding</artifactId>
+            <version>${helidon.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>io.helidon.logging</groupId>
             <artifactId>helidon-logging-jul</artifactId>
+            <version>${helidon.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -85,6 +104,7 @@
         <dependency>
             <groupId>io.helidon.data.sql.datasource</groupId>
             <artifactId>helidon-data-sql-datasource-hikari</artifactId>
+            <version>${helidon.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -105,44 +125,51 @@
         <dependency>
             <groupId>io.helidon.webserver.testing.junit5</groupId>
             <artifactId>helidon-webserver-testing-junit5</artifactId>
+            <version>${helidon.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-compiler-plugin</artifactId>
-            <configuration>
-                <annotationProcessorPaths>
-                    <path>
-                        <groupId>io.helidon.bundles</groupId>
-                        <artifactId>helidon-bundles-apt</artifactId>
-                        <version>${helidon.version}</version>
-                    </path>
-                    <path>
-                        <groupId>io.helidon.data.jakarta.persistence</groupId>
-                        <artifactId
-              >helidon-data-jakarta-persistence-codegen</artifactId>
-                        <version>${helidon.version}</version>
-                    </path>
-                </annotationProcessorPaths>
-            </configuration>
-        </plugin>
-        <plugin>
-            <groupId>io.helidon.service</groupId>
-            <artifactId>helidon-service-maven-plugin</artifactId>
-            <version>${helidon.version}</version>
-            <executions>
-                <execution>
-                    <id>create-application</id>
-                    <goals>
-                        <goal>create-application</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>io.helidon.bundles</groupId>
+                            <artifactId>helidon-bundles-apt</artifactId>
+                            <version>${helidon.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.helidon.data.codegen</groupId>
+                            <artifactId>helidon-data-codegen</artifactId>
+                            <version>${helidon.data.jpa.local.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.helidon.data.jakarta.persistence</groupId>
+                            <artifactId>helidon-data-jakarta-persistence-codegen</artifactId>
+                            <version>${helidon.data.jpa.local.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>io.helidon.service</groupId>
+                <artifactId>helidon-service-maven-plugin</artifactId>
+                <version>${helidon.version}</version>
+                <executions>
+                    <execution>
+                        <id>create-application</id>
+                        <goals>
+                            <goal>create-application</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
