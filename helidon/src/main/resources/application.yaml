@@ -5,6 +5,40 @@ server:
 declarative:
   ignore-incubating: true
 
+telemetry:
+  service: helidon
+  signals:
+    logging:
+      enabled: true
+      processors:
+        - type: BATCH
+          exporters:
+            - otlp
+      exporters:
+        otlp:
+          type: OTLP
+          endpoint: http://localhost:4318/v1/logs
+    metrics:
+      readers:
+        - exporter: otlp
+          interval: 10s
+      exporters:
+        otlp:
+          type: OTLP
+          endpoint: http://localhost:4318/v1/metrics
+    tracing:
+      sampler:
+        type: TRACEIDRATIO
+        param: 0.1
+      processors:
+        - type: BATCH
+          exporters:
+            - otlp
+      exporters:
+        otlp:
+          type: OTLP
+          endpoint: http://localhost:4318/v1/traces
+
 app:
   fruit:
     repository:

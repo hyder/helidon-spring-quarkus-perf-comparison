@@ -314,7 +314,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
   CPUS_FIRST_REQUEST="10"
   DESCRIPTION=""
   RUN_IDENTIFIER=""
-  SCM_REPO_URL="https://github.com/quarkusio/spring-quarkus-perf-comparison.git"
+  SCM_REPO_URL="https://github.com/hyder/spring-quarkus-perf-comparison.git"
   SCM_REPO_BRANCH="main"
   SCENARIO="tuned"
   GRAALVM_HOME=""
