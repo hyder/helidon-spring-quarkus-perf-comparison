@@ -1,6 +1,7 @@
 package io.helidon.labs.dto;
 
-import io.helidon.json.binding.Json;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.helidon.labs.json.StoreFruitPriceDtoSerializer;
 
-@Json.Entity
+@JsonSerialize(using = StoreFruitPriceDtoSerializer.class)
 public record StoreFruitPriceDto(StoreDto store, float price) {}

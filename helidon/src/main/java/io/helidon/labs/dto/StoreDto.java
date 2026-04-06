@@ -1,8 +1,9 @@
 package io.helidon.labs.dto;
 
-import io.helidon.json.binding.Json;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.helidon.labs.json.StoreDtoSerializer;
 
-@Json.Entity
+@JsonSerialize(using = StoreDtoSerializer.class)
 public record StoreDto(
   Long id,
   String name,

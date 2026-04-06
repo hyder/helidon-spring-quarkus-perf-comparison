@@ -1,9 +1,10 @@
 package io.helidon.labs.dto;
 
-import io.helidon.json.binding.Json;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.helidon.labs.json.FruitDtoSerializer;
 import java.util.List;
 
-@Json.Entity
+@JsonSerialize(using = FruitDtoSerializer.class)
 public record FruitDto(
   Long id,
   String name,
