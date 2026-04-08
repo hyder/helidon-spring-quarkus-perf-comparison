@@ -5,8 +5,10 @@ import java.util.Objects;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import io.helidon.json.binding.Json;
 
 @Embeddable
+@Json.Entity
 public class StoreFruitPriceId implements Serializable {
 
     @Column(name = "store_id", nullable = false)

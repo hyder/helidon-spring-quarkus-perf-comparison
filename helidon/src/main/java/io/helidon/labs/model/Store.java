@@ -11,11 +11,13 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import io.helidon.json.binding.Json;
 
 @Entity
 @Table(name = "stores")
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "store")
+@Json.Entity
 public class Store {
 
   @Id

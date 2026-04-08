@@ -14,11 +14,13 @@ import java.util.List;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import io.helidon.json.binding.Json;
 
 @Entity
 @Table(name = "fruits")
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "fruit")
+@Json.Entity
 public class Fruit {
 
   @Id

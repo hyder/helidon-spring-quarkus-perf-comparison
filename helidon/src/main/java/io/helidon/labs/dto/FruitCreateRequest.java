@@ -1,7 +1,6 @@
 package io.helidon.labs.dto;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import io.helidon.labs.json.FruitCreateRequestDeserializer;
+import io.helidon.json.binding.Json;
 
-@JsonDeserialize(using = FruitCreateRequestDeserializer.class)
+@Json.Entity
 public record FruitCreateRequest(String name, String description) {}

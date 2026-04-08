@@ -1,7 +1,6 @@
 package io.helidon.labs.dto;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.helidon.labs.json.AddressDtoSerializer;
+import io.helidon.json.binding.Json;
 
-@JsonSerialize(using = AddressDtoSerializer.class)
+@Json.Entity
 public record AddressDto(String address, String city, String country) {}

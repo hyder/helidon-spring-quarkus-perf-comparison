@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import io.helidon.json.binding.Json;
 
 @Entity
 @Table(name = "store_fruit_prices")
@@ -20,6 +21,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
   region = "storeFruitPrice"
 )
 @BatchSize(size = 32)
+@Json.Entity
 public class StoreFruitPrice {
 
   @EmbeddedId

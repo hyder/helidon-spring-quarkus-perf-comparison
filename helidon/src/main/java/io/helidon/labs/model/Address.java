@@ -2,8 +2,10 @@ package io.helidon.labs.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import io.helidon.json.binding.Json;
 
 @Embeddable
+@Json.Entity
 public class Address {
 
     @Column(nullable = false)
