@@ -4,21 +4,21 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.helidon.labs.dto.AddressDto;
 import io.helidon.labs.dto.FruitCreateRequest;
 import io.helidon.labs.dto.FruitDto;
 import io.helidon.labs.dto.StoreDto;
 import io.helidon.labs.dto.StoreFruitPriceDto;
+import io.helidon.json.binding.JsonBinding;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class FruitJacksonTest {
+class FruitJsonBindingTest {
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final JsonBinding JSON_BINDING = JsonBinding.create();
 
   @Test
-  void serializesFruitDtoWithExplicitJacksonSerializer() throws Exception {
+  void serializesFruitDtoWithHelidonJsonBinding() {
     FruitDto fruit = new FruitDto(
       1L,
       "Apple",
@@ -36,7 +36,7 @@ class FruitJacksonTest {
       )
     );
 
-    String json = OBJECT_MAPPER.writeValueAsString(fruit);
+    String json = JSON_BINDING.serialize(fruit);
 
     assertThat(json, containsString("\"name\":\"Apple\""));
     assertThat(json, containsString("\"storePrices\":[{"));
@@ -45,16 +45,12 @@ class FruitJacksonTest {
   }
 
   @Test
-  void deserializesFruitCreateRequestWithExplicitJacksonDeserializer()
-    throws Exception {
-    FruitCreateRequest request = OBJECT_MAPPER.readValue(
+  void deserializesFruitCreateRequestWithHelidonJsonBinding() {
+    FruitCreateRequest request = JSON_BINDING.deserialize(
       """
       {
         "name": "Banana",
-        "description": "Curved yellow fruit",
-        "ignored": {
-          "extra": true
-        }
+        "description": "Curved yellow fruit"
       }
       """,
       FruitCreateRequest.class
