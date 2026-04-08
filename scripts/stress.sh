@@ -28,7 +28,7 @@ set -euo pipefail
 
 WRK_TIMEOUT="${WRK_TIMEOUT:-5s}"
 
-${thisdir}/infra.sh -s
+${thisdir}/infra.sh -s -t 4g
 
 ts=$(_date)
 
@@ -66,5 +66,5 @@ echo "-------------------------------------------------"
 
 jbang wrk@hyperfoil -t2 -c100 -d20s --timeout "${WRK_TIMEOUT}" --latency http://localhost:8080/fruits
 
-${thisdir}/infra.sh -d
-kill $(lsof -t -i:8080) &>/dev/null
+#${thisdir}/infra.sh -d
+#kill $(lsof -t -i:8080) &>/dev/null

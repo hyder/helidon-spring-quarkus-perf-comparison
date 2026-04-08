@@ -9,6 +9,15 @@ telemetry:
   service: helidon-test
   global: false
   signals:
+    logging:
+      enabled: true
+      processors:
+        - type: simple
+          exporters:
+            - otlp-log
+      exporters:
+        - name: otlp-log
+          type: logging_otlp
     metrics:
       exporters:
         - name: otlp-log

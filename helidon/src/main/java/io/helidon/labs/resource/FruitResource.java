@@ -18,8 +18,10 @@ import io.helidon.webserver.http.RestServer;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.logs.Severity;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.context.Context;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,12 +39,14 @@ public class FruitResource {
   private static final String RESPONSE_CODE_ATTRIBUTE = "response.code";
 
   private final FruitRepository fruitRepository;
+  private final io.opentelemetry.api.logs.Logger otelLogger;
   private final LongCounter fruitRequests;
   private final DoubleHistogram fruitRequestDuration;
 
   @Service.Inject
   public FruitResource(FruitRepository fruitRepository, OpenTelemetry openTelemetry) {
     this.fruitRepository = fruitRepository;
+    this.otelLogger = openTelemetry.getLogsBridge().get(FruitResource.class.getName());
     var meter = openTelemetry.meterBuilder("io.helidon.labs.fruits").build();
     this.fruitRequests = meter
       .counterBuilder("fruit.requests")
@@ -134,6 +138,16 @@ public class FruitResource {
 
   private void emitLog(Level level, String body) {
     LOGGER.log(level, body);
+    otelLogger
+      .logRecordBuilder()
+      .setContext(Context.current())
+      .setSeverity(severity(level))
+      .setSeverityText(level.getName())
+      .setBody(body)
+      .setAttribute("logger.name", LOGGER.getName())
+      .setAttribute("code.namespace", FruitResource.class.getName())
+      .setAttribute("code.function", "emitLog")
+      .emit();
   }
 
   private void recordOtelMetrics(String operation, long startNanos, int statusCode) {
@@ -167,5 +181,22 @@ public class FruitResource {
     String description =
       request.description() == null ? null : request.description().trim();
     return new FruitCreateRequest(name, description);
+  }
+
+  private static Severity severity(Level level) {
+    int value = level.intValue();
+    if (value >= Level.SEVERE.intValue()) {
+      return Severity.ERROR;
+    }
+    if (value >= Level.WARNING.intValue()) {
+      return Severity.WARN;
+    }
+    if (value >= Level.INFO.intValue()) {
+      return Severity.INFO;
+    }
+    if (value >= Level.FINE.intValue()) {
+      return Severity.DEBUG;
+    }
+    return Severity.TRACE;
   }
 }
