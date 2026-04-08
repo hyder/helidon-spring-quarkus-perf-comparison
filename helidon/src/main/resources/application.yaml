@@ -1,12 +1,22 @@
 server:
   port: 8080
   host: 0.0.0.0
+  features:
+    observe:
+      observers:
+        metrics: {}
+        tracing: {}
 
 declarative:
   ignore-incubating: true
 
+tracing:
+  service: helidon
+  global: false
+
 telemetry:
   service: helidon
+  global: false
   signals:
     logging:
       enabled: true
@@ -15,15 +25,16 @@ telemetry:
           exporters:
             - otlp
       exporters:
-        otlp:
+        - name: otlp
           type: OTLP
           endpoint: http://localhost:4318/v1/logs
     metrics:
       readers:
-        - exporter: otlp
-          interval: 10s
+        - type: periodic
+          exporter: otlp
+          interval: PT10S
       exporters:
-        otlp:
+        - name: otlp
           type: OTLP
           endpoint: http://localhost:4318/v1/metrics
     tracing:
@@ -35,7 +46,7 @@ telemetry:
           exporters:
             - otlp
       exporters:
-        otlp:
+        - name: otlp
           type: OTLP
           endpoint: http://localhost:4318/v1/traces
 

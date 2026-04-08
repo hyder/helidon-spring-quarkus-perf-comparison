@@ -25,9 +25,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
+import io.opentelemetry.api.OpenTelemetry;
 import org.junit.jupiter.api.Test;
 
 class FruitResourceTest {
+
+  private static final OpenTelemetry OPEN_TELEMETRY = OpenTelemetry.noop();
 
   @Test
   void allReturnsMappedFruitDetails() {
@@ -41,7 +44,8 @@ class FruitResourceTest {
     );
 
     FruitResource resource = new FruitResource(
-      new InMemoryFruitRepository(List.of(apple))
+      new InMemoryFruitRepository(List.of(apple)),
+      OPEN_TELEMETRY
     );
 
     List<FruitDto> fruits = resource.all();
@@ -59,7 +63,8 @@ class FruitResourceTest {
   @Test
   void fruitThrowsNotFoundWhenMissing() {
     FruitResource resource = new FruitResource(
-      new InMemoryFruitRepository(List.of())
+      new InMemoryFruitRepository(List.of()),
+      OPEN_TELEMETRY
     );
 
     assertThrows(NotFoundException.class, () -> resource.fruit("Missing"));
@@ -77,7 +82,8 @@ class FruitResourceTest {
     );
 
     FruitResource resource = new FruitResource(
-      new InMemoryFruitRepository(List.of(apple))
+      new InMemoryFruitRepository(List.of(apple)),
+      OPEN_TELEMETRY
     );
 
     FruitDto fruit = resource.fruit("Apple");
@@ -95,7 +101,7 @@ class FruitResourceTest {
     InMemoryFruitRepository repository = new InMemoryFruitRepository(
       List.of(fruit(1L, "Apple", "Hearty fruit"))
     );
-    FruitResource resource = new FruitResource(repository);
+    FruitResource resource = new FruitResource(repository, OPEN_TELEMETRY);
 
     FruitDto created = resource.insert(
       new FruitCreateRequest("  Banana  ", "  Curved yellow fruit  ")

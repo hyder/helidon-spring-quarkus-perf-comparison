@@ -1,3 +1,23 @@
+server:
+  features:
+    observe:
+      observers:
+        metrics: {}
+        tracing: {}
+
+telemetry:
+  service: helidon-test
+  global: false
+  signals:
+    metrics:
+      exporters:
+        - name: otlp-log
+          type: logging_otlp
+      readers:
+        - type: periodic
+          exporter: otlp-log
+          interval: PT1S
+
 app:
   fruit:
     repository:
@@ -14,3 +34,7 @@ data:
   persistence-units:
     jakarta:
       - data-source: "fruitstore"
+        init-script: "init.sql"
+        drop-script: "drop.sql"
+        properties:
+          jakarta.persistence.schema-generation.database.action: "none"
