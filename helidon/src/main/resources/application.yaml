@@ -10,6 +10,15 @@ server:
 declarative:
   ignore-incubating: true
 
+metrics:
+  app-name: fruits
+  built-in-meter-name-format: snake
+  publishers:
+    - type: otlp
+      interval: PT10S
+      url: http://localhost:4318/v1/metrics
+    # - type: prometheus
+
 tracing:
   service: helidon
   global: false
@@ -28,15 +37,15 @@ telemetry:
         - name: otlp
           type: OTLP
           endpoint: http://localhost:4318/v1/logs
-    metrics:
-      readers:
-        - type: periodic
-          exporter: otlp
-          interval: PT10S
-      exporters:
-        - name: otlp
-          type: OTLP
-          endpoint: http://localhost:4318/v1/metrics
+    # metrics:
+    #   readers:
+    #     - type: periodic
+    #       exporter: otlp
+    #       interval: PT10S
+    #   exporters:
+    #     - name: otlp
+    #       type: OTLP
+    #       endpoint: http://localhost:4318/v1/metrics
     tracing:
       sampler:
         type: TRACEIDRATIO

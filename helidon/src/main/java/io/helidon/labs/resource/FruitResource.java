@@ -5,6 +5,8 @@ import io.helidon.http.BadRequestException;
 import io.helidon.http.Http;
 import io.helidon.http.HttpException;
 import io.helidon.http.NotFoundException;
+import io.helidon.metrics.api.Metrics;
+import io.helidon.metrics.api.Meter;
 import io.helidon.labs.dto.FruitCreateRequest;
 import io.helidon.labs.dto.FruitDto;
 import io.helidon.labs.mapping.FruitMapper;
@@ -40,28 +42,30 @@ public class FruitResource {
 
   private final FruitRepository fruitRepository;
   private final io.opentelemetry.api.logs.Logger otelLogger;
-  private final LongCounter fruitRequests;
-  private final DoubleHistogram fruitRequestDuration;
+  // private final LongCounter fruitRequests;
+  // private final DoubleHistogram fruitRequestDuration;
 
   @Service.Inject
   public FruitResource(FruitRepository fruitRepository, OpenTelemetry openTelemetry) {
     this.fruitRepository = fruitRepository;
     this.otelLogger = openTelemetry.getLogsBridge().get(FruitResource.class.getName());
-    var meter = openTelemetry.meterBuilder("io.helidon.labs.fruits").build();
-    this.fruitRequests = meter
-      .counterBuilder("fruit.requests")
-      .setDescription("Fruit resource requests")
-      .build();
-    this.fruitRequestDuration = meter
-      .histogramBuilder("fruit.request.duration")
-      .setDescription("Fruit resource request duration")
-      .setUnit("s")
-      .build();
+    // var meter = openTelemetry.meterBuilder("io.helidon.labs.fruits").build();
+    // this.fruitRequests = meter
+    //   .counterBuilder("fruit.requests")
+    //   .setDescription("Fruit resource requests")
+    //   .build();
+    // this.fruitRequestDuration = meter
+    //   .histogramBuilder("fruit.request.duration")
+    //   .setDescription("Fruit resource request duration")
+    //   .setUnit("s")
+    //   .build();
   }
 
   @Http.GET
   @Http.Produces(MediaTypes.APPLICATION_JSON_VALUE)
   @Tracing.Traced("FruitResource.all")
+  @Metrics.Counted(absoluteName=true, value="fruit.requests", unit=Meter.BaseUnits.SECONDS)
+  @Metrics.Timed(absoluteName=true, value="fruit.request.duration")
   List<FruitDto> all() {
     long start = System.nanoTime();
     int statusCode = 200;
@@ -74,7 +78,7 @@ public class FruitResource {
       statusCode = statusCode(e);
       throw e;
     } finally {
-      recordOtelMetrics("all", start, statusCode);
+      //recordOtelMetrics("all", start, statusCode);
     }
   }
 
@@ -82,6 +86,8 @@ public class FruitResource {
   @Http.Path("/{name}")
   @Http.Produces(MediaTypes.APPLICATION_JSON_VALUE)
   @Tracing.Traced("FruitResource.fruit")
+  @Metrics.Counted(absoluteName=true, value="fruit.requests")
+  @Metrics.Timed(absoluteName=true, value="fruit.request.duration")
   FruitDto fruit(@Http.PathParam("name") String name) {
     long start = System.nanoTime();
     int statusCode = 200;
@@ -98,7 +104,7 @@ public class FruitResource {
       statusCode = statusCode(e);
       throw e;
     } finally {
-      recordOtelMetrics("fruit", start, statusCode);
+      //recordOtelMetrics("fruit", start, statusCode);
     }
   }
 
@@ -107,6 +113,8 @@ public class FruitResource {
   @Http.Produces(MediaTypes.APPLICATION_JSON_VALUE)
   @Tx.Required
   @Tracing.Traced("FruitResource.insert")
+  @Metrics.Counted(absoluteName=true, value="fruit.requests")
+  @Metrics.Timed(absoluteName=true, value="fruit.request.duration")
   FruitDto insert(@Http.Entity FruitCreateRequest request) {
     long start = System.nanoTime();
     int statusCode = 200;
@@ -132,7 +140,7 @@ public class FruitResource {
       statusCode = statusCode(e);
       throw e;
     } finally {
-      recordOtelMetrics("insert", start, statusCode);
+      //recordOtelMetrics("insert", start, statusCode);
     }
   }
 
@@ -150,18 +158,18 @@ public class FruitResource {
       .emit();
   }
 
-  private void recordOtelMetrics(String operation, long startNanos, int statusCode) {
-    Attributes attributes = Attributes.of(
-      AttributeKey.stringKey(OPERATION_ATTRIBUTE), operation,
-      AttributeKey.stringKey(RESOURCE_ATTRIBUTE), "fruits",
-      AttributeKey.longKey(RESPONSE_CODE_ATTRIBUTE), (long) statusCode
-    );
-    fruitRequests.add(1, attributes);
-    fruitRequestDuration.record(
-      (System.nanoTime() - startNanos) / 1_000_000_000.0,
-      attributes
-    );
-  }
+  // private void recordOtelMetrics(String operation, long startNanos, int statusCode) {
+  //   Attributes attributes = Attributes.of(
+  //     AttributeKey.stringKey(OPERATION_ATTRIBUTE), operation,
+  //     AttributeKey.stringKey(RESOURCE_ATTRIBUTE), "fruits",
+  //     AttributeKey.longKey(RESPONSE_CODE_ATTRIBUTE), (long) statusCode
+  //   );
+  //   fruitRequests.add(1, attributes);
+  //   fruitRequestDuration.record(
+  //     (System.nanoTime() - startNanos) / 1_000_000_000.0,
+  //     attributes
+  //   );
+  // }
 
   private static int statusCode(RuntimeException e) {
     if (e instanceof HttpException httpException) {
